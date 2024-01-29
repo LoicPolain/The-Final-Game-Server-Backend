@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/LoicPolain/The-Final-Game-Server-Backend/issues"
   },
-  "homepage": "https://github.com/LoicPolain/The-Final-Game-Server-Backend#readme"
+  "homepage": "https://github.com/LoicPolain/The-Final-Game-Server-Backend#readme",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
 }

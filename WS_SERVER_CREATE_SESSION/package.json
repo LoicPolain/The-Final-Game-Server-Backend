@@ -1,0 +1,22 @@
+{
+  "name": "ws_server_session",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LoicPolain/The-Final-Game-Server-Backend.git"
+  },
+  "author": "Final Game",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LoicPolain/The-Final-Game-Server-Backend/issues"
+  },
+  "homepage": "https://github.com/LoicPolain/The-Final-Game-Server-Backend#readme",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

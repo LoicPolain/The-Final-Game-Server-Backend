@@ -14,6 +14,7 @@ ws.on("connection", (ws) => {
 
   if (dedicatedServer.playersCount >= 2) {
     ws.send("Server is full");
+    ws.close()
   } else {
     dedicatedServer.playersCount++;
     if (dedicatedServer.playersCount == 2) {

@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  ubuntu-container:
+    image: ubuntu:latest
+    ports:
+      - "7777:7777"
+    volumes:
+      - ./LinuxServer:/app
+    command: bash -c "./FinalGameServer.sh"

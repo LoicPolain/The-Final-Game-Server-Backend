@@ -1,33 +1,43 @@
 import { WebSocket, WebSocketServer } from "ws";
-const ws = new WebSocketServer({ port: 8080 });
 
-let dedicatedServer = {
-  port: 7777,
-  status: "Running",
-  playersStatus: "Awaiting players",
-  playersCount: 0,
-};
+for (let port = 7777; port <= 7778; port++) {
+  const ws = new WebSocketServer({ port: port });
 
-ws.on("connection", (ws) => {
-  console.log("New user connected");
-  ws.send("Your are connected to your own websocket!");
+  let dedicatedServer = {
+    port: port,
+    status: "Running",
+    playersStatus: "Awaiting players",
+    playersCount: 0,
+  };
 
-  if (dedicatedServer.playersCount >= 2) {
-    ws.send("Server is full");
-    ws.close()
-  } else {
-    dedicatedServer.playersCount++;
-    if (dedicatedServer.playersCount == 2) {
-      dedicatedServer.playersStatus = "Full";
+  ws.on("connection", (ws) => {
+    console.log("New user connected");
+
+    ws.send("Your are connected to your own websocket!");
+
+    if (dedicatedServer.playersCount >= 2) {
+      ws.send("Server is full");
+      ws.close();
+    } else {
+      dedicatedServer.playersCount++;
+      if (dedicatedServer.playersCount == 2) {
+        dedicatedServer.playersStatus = "Full";
+      }
+      console.log(dedicatedServer);
     }
-  }
 
-  ws.on('close', function close() {
-    console.log('User disconnected');
-    dedicatedServer.playersCount--;
-    if (dedicatedServer.playersCount < 2) {
-      dedicatedServer.playersStatus = "Awaiting players";
-    }
+    ws.on("close", function close() {
+      console.log("User disconnected");
+      dedicatedServer.playersCount--;
+      if (dedicatedServer.playersCount < 2) {
+        dedicatedServer.playersStatus = "Awaiting players";
+      }
+    });
+
+    ws.on("error", function (error) {
+      console.error("WebSocket error:", error);
+    });
+
+    ws.send(JSON.stringify(dedicatedServer));
   });
-  ws.send(JSON.stringify(dedicatedServer));
-});
+}

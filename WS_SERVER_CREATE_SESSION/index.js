@@ -1,40 +1,41 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const http = require('http');
+const httpProxy = require('http-proxy');
 
-const app = express();
-const port = 8080;
-
-// Session data structure to store information about game sessions
-const sessions = {};
-
-// Middleware to parse JSON bodies
-app.use(bodyParser.json());
-
-// POST endpoint to receive current path and return new path
-app.post('/generateNewPath', (req, res) => {
-    const { sessionId, currentPath } = req.body;
-
-    // Check if session exists, if not, create a new one
-    if (!sessions[sessionId]) {
-        sessions[sessionId] = {
-            currentPath: currentPath,
-            // You can add more session-specific data here
-        };
-    }
-
-    const newPath = generateNewPath(sessionId, currentPath);
-
-    res.json({ newPath: newPath });
+// Create a new HTTP server
+const server = http.createServer((req, res) => {
+    // Here, you can handle any regular HTTP requests if needed
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end('WebSocket reverse proxy is running!');
 });
 
-// Function to generate a new path for a specific game session
-function generateNewPath(sessionId, currentPath) {
-    // Example logic to generate a new path for the given session
-    // This is just a placeholder example
-    return `${currentPath}/${sessionId}/new`; // Appending session ID to the current path as an example
-}
+// Create a WebSocket proxy instance
+const proxy = httpProxy.createProxyServer({
+    ws: true
+});
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+// Map paths to WebSocket servers
+const pathsToServers = {
+    '/path1': 'ws://localhost:7777',
+    '/path2': 'ws://localhost:7778'
+};
+
+// Handle WebSocket upgrade requests
+server.on('upgrade', (req, socket, head) => {
+    const url = req.url;
+    const target = pathsToServers[url];
+    if (!target) {
+        socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
+        socket.destroy();
+        return;
+    }
+
+    proxy.ws(req, socket, head, { target }, (err) => {
+        console.error('WebSocket proxy error:', err);
+    });
+});
+
+// Start the HTTP server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`WebSocket reverse proxy listening on port ${PORT}`);
 });

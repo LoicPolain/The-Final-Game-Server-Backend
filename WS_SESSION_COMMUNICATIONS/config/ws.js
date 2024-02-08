@@ -1,5 +1,6 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { exec } from "child_process";
+import { applyStatusChangeToPathsToServersMap } from "./path.js";
 
 const createWebSockets = function (portLst) {
   portLst.forEach((port) => {
@@ -25,14 +26,24 @@ const createWebSockets = function (portLst) {
 
       dedicatedServer.playersCount++;
 
+      switch (dedicatedServer.playersCount) {
+        case 1:{
+          applyStatusChangeToPathsToServersMap(port, "AWAITING");
+          break;
+        }
+        case 2:{
+            console.log(`Session ${port} is full!`);
+            applyStatusChangeToPathsToServersMap(port, "CLOSED");
+            break;
+        }
+        default:
+          break;
+      }
+
       if (dedicatedServer.playersCount > 2) {
-        console.log(`Session ${port} is full!`);
         ws.send("Session is full");
         ws.close();
       } else {
-        if (dedicatedServer.playersCount == 2) {
-          dedicatedServer.playersStatus = "Full";
-        }
         console.log(dedicatedServer);
         broadcast(JSON.stringify(dedicatedServer), clients);
       }
@@ -47,9 +58,20 @@ const createWebSockets = function (portLst) {
       ws.on("close", function close() {
         console.log(`User disconnected from game session: ${port}`);
         dedicatedServer.playersCount--;
-        if (dedicatedServer.playersCount < 2) {
-          dedicatedServer.playersStatus = "Awaiting players";
+
+        switch (dedicatedServer.playersCount) {
+          case 0:{
+            applyStatusChangeToPathsToServersMap(port, "OPEN");
+            break;
+          }
+          case 1:{
+            applyStatusChangeToPathsToServersMap(port, "AWAITING");
+            break;
+          }
+          default:
+            break;
         }
+
       });
 
       ws.on("error", function (error) {

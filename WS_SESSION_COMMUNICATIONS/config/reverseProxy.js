@@ -66,7 +66,7 @@ function getAvailablePath() {
   let availablePath = null;
   pathsToServers.forEach((info, path) => {
     if (info.status == "AWAITING") {        
-        if (!availablePath) {
+        if (!availablePath || availablePath.status == "OPEN") {
             availablePath = info;
         }
         else{
@@ -78,7 +78,6 @@ function getAvailablePath() {
     if (!(availablePath && availablePath.status == "AWAITING")) {
         if (info.status == "OPEN") {
             if (!availablePath) {
-                console.log(`test: ${!availablePath}`);
                 availablePath = info;
             }
             else{

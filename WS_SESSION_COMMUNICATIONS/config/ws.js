@@ -1,11 +1,11 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { exec } from "child_process";
-import { applyStatusChangeToPathsToServersMap } from "./path.js";
+import { applyStatusChangeToPathsToServersMap, getPathsToServersMap } from "./path.js";
 
 const createWebSockets = function (portLst) {
   portLst.forEach((port) => {
     const ws = new WebSocketServer({ port: port });
-    console.log(`Created game session on port: ${port}`);
+    // console.log(`Created game session on port: ${port}`);
     // Define the Docker command you want to execute
     const dockerCommand = "docker container ls -a";
 
@@ -44,7 +44,7 @@ const createWebSockets = function (portLst) {
         ws.send("Session is full");
         ws.close();
       } else {
-        console.log(dedicatedServer);
+        console.log(getPathsToServersMap().get(`/session${port - 7000}`));
         broadcast(JSON.stringify(dedicatedServer), clients);
       }
 

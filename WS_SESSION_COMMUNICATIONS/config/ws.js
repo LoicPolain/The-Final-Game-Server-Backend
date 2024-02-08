@@ -23,15 +23,18 @@ const createWebSockets = function (portLst) {
       clients.add(ws);
       ws.send(`Your are connected to game session ${port}`);
 
-      if (dedicatedServer.playersCount >= 2) {
-        ws.send("Server is full");
+      dedicatedServer.playersCount++;
+
+      if (dedicatedServer.playersCount > 2) {
+        console.log(`Session ${port} is full!`);
+        ws.send("Session is full");
         ws.close();
       } else {
-        dedicatedServer.playersCount++;
         if (dedicatedServer.playersCount == 2) {
           dedicatedServer.playersStatus = "Full";
         }
         console.log(dedicatedServer);
+        broadcast(JSON.stringify(dedicatedServer), clients);
       }
 
       ws.on("message", function incoming(message) {
@@ -52,8 +55,6 @@ const createWebSockets = function (portLst) {
       ws.on("error", function (error) {
         console.error("WebSocket error:", error);
       });
-
-      broadcast(JSON.stringify(dedicatedServer), clients);
     });
 
     function executeDockerCmd() {

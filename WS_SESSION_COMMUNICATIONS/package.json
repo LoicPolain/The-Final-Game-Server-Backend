@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/LoicPolain/The-Final-Game-Server-Backend#readme",
   "dependencies": {
+    "http-proxy": "^1.18.1",
+    "is-port-reachable": "^4.0.0",
     "ws": "^8.16.0"
   }
 }

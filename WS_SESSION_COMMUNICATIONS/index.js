@@ -1,43 +1,66 @@
-import { WebSocket, WebSocketServer } from "ws";
+import { unusedPortsResult } from "./config/ports.js";
+import { createWebSockets } from "./config/ws.js";
+import http from "http";
+import httpProxy from "http-proxy";
 
-for (let port = 7777; port <= 7778; port++) {
-  const ws = new WebSocketServer({ port: port });
+// Network config
+const minPort = 7000;
+const maxPort = 7999;
+const host = "localhost";
 
-  let dedicatedServer = {
-    port: port,
-    status: "Running",
-    playersStatus: "Awaiting players",
-    playersCount: 0,
-  };
+unusedPortsResult(minPort, maxPort, host)
+  .then((unusedPorts) => {
+    console.log(
+      "Unused UDP ports that are available for game sessions:",
+      unusedPorts.length
+    );
+    createWebSockets(unusedPorts);
+    reverseProxy(unusedPorts)
+  })
+  .catch((err) => {
+    console.error("Error collecting unused UDP ports:", err);
+  });
 
-  ws.on("connection", (ws) => {
-    console.log("New user connected");
+function reverseProxy(portLst) {
+    // Create a new HTTP server
+  const server = http.createServer((req, res) => {
+    // Here, you can handle any regular HTTP requests if needed
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("WebSocket reverse proxy is running!");
+  });
 
-    ws.send("Your are connected to your own websocket!");
+  // Create a WebSocket proxy instance
+  const proxy = httpProxy.createProxyServer({
+    ws: true,
+  });
 
-    if (dedicatedServer.playersCount >= 2) {
-      ws.send("Server is full");
-      ws.close();
-    } else {
-      dedicatedServer.playersCount++;
-      if (dedicatedServer.playersCount == 2) {
-        dedicatedServer.playersStatus = "Full";
-      }
-      console.log(dedicatedServer);
+  // Map paths to WebSocket servers
+  var pathsToServers = new Map();
+
+  portLst.forEach(port => {
+    var path = `/session${port-7000}`
+    var loc = `ws://localhost:${port}`
+    pathsToServers.set(path, loc)
+  });
+
+  // Handle WebSocket upgrade requests
+  server.on("upgrade", (req, socket, head) => {
+    const url = req.url;
+    const target = pathsToServers.get(url);
+    if (!target) {
+      socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+      socket.destroy();
+      return;
     }
 
-    ws.on("close", function close() {
-      console.log("User disconnected");
-      dedicatedServer.playersCount--;
-      if (dedicatedServer.playersCount < 2) {
-        dedicatedServer.playersStatus = "Awaiting players";
-      }
+    proxy.ws(req, socket, head, { target }, (err) => {
+      console.error("WebSocket proxy error:", err);
     });
+  });
 
-    ws.on("error", function (error) {
-      console.error("WebSocket error:", error);
-    });
-
-    ws.send(JSON.stringify(dedicatedServer));
+  // Start the HTTP server
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`WebSocket reverse proxy listening on port ${PORT}`);
   });
 }

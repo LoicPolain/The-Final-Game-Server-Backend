@@ -14,7 +14,7 @@ const proxy = httpProxy.createProxyServer({
 });
 
 // Map paths to WebSocket servers
-const pathsToServers = {
+var pathsToServers = {
     '/path1': 'ws://localhost:7777',
     '/path2': 'ws://localhost:7778'
 };

@@ -1,13 +1,25 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { exec } from "child_process";
-import { applyStatusChangeToPathsToServersMap, getPathsToServersMap } from "./path.js";
+import {
+  applyStatusChangeToPathsToServersMap,
+  getPathsToServersMap,
+} from "./path.js";
 
-const createWebSockets = function (portLst) {
+const createWebSockets = async function (portLst) {
   portLst.forEach((port) => {
     const ws = new WebSocketServer({ port: port });
     //console.log(`Created game session on port: ${port}`);
-    // Define the Docker command you want to execute
-    const dockerCommand = `docker run -d -p ${port}:7777/udp server`;
+
+    // Define the Docker commands:
+    const dockerCommandCreateSession = `docker run -d -p ${port}:7777/udp --name session${
+      port - 7000
+    } server`;
+    const dockerCommandStopSession = `docker container stop session${
+      port - 7000
+    }`;
+    const dockerCommandDeleteSession = `docker container rm session${
+      port - 7000
+    }`;
 
     // Store connected clients
     const clients = new Set();
@@ -27,15 +39,15 @@ const createWebSockets = function (portLst) {
       dedicatedServer.playersCount++;
 
       switch (dedicatedServer.playersCount) {
-        case 1:{
+        case 1: {
           applyStatusChangeToPathsToServersMap(port, "AWAITING");
           break;
         }
-        case 2:{
-            console.log(`Session ${port} is full!`);
-            applyStatusChangeToPathsToServersMap(port, "CLOSED");
-            executeDockerCmd();
-            break;
+        case 2: {
+          console.log(`Session ${port} is full!`);
+          applyStatusChangeToPathsToServersMap(port, "CLOSED");
+          executeUbuntuCmd(dockerCommandCreateSession);
+          break;
         }
         default:
           break;
@@ -52,7 +64,6 @@ const createWebSockets = function (portLst) {
       ws.on("message", function incoming(message) {
         console.log("received: %s", message);
         if (message == "Start game") {
-          
         }
       });
 
@@ -61,18 +72,27 @@ const createWebSockets = function (portLst) {
         dedicatedServer.playersCount--;
 
         switch (dedicatedServer.playersCount) {
-          case 0:{
-            applyStatusChangeToPathsToServersMap(port, "OPEN");
+          case 0: {
+            executeUbuntuCmd(dockerCommandStopSession)
+              .then(() => {
+                executeUbuntuCmd(dockerCommandDeleteSession);
+              })
+              .then(() => {
+                console.log("Done");
+                applyStatusChangeToPathsToServersMap(port, "OPEN");
+              })
+              .catch((error) => {
+                console.error("Error occurred:", error);
+              });
             break;
           }
-          case 1:{
+          case 1: {
             applyStatusChangeToPathsToServersMap(port, "AWAITING");
             break;
           }
           default:
             break;
         }
-
       });
 
       ws.on("error", function (error) {
@@ -80,27 +100,33 @@ const createWebSockets = function (portLst) {
       });
     });
 
-    function executeDockerCmd() {
-      // Execute the Docker command
-      const childProcess = exec(dockerCommand);
+    function executeUbuntuCmd(ubuntu_cmd) {
+      return new Promise((resolve, reject) => {
+        // Execute the Docker command
+        const childProcess = exec(ubuntu_cmd);
 
-      // Handle stdout data
-      childProcess.stdout.on("data", (data) => {
-        console.log(`stdout: ${data}`);
+        // Handle stdout data
+        childProcess.stdout.on("data", (data) => {
+          console.log(`stdout: ${data}`);
+        });
+
+        // Handle stderr data
+        childProcess.stderr.on("data", (data) => {
+          console.error(`stderr: ${data}`);
+        });
+
+        // Handle process exit
+        childProcess.on("close", (code) => {
+          console.log(`child process exited with code ${code}`);
+          resolve();
+        });
+
+        // Handle errors
+        childProcess.on("error", (error) => {
+          console.error("Error occurred:", error);
+          reject(error);
+        });
       });
-
-      // Handle stderr data
-      childProcess.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`);
-      });
-
-      // Handle process exit
-      childProcess.on("close", (code) => {
-        console.log(`child process exited with code ${code}`);
-      });
-
-      dedicatedServer.status = "Running";
-      broadcast(JSON.stringify(dedicatedServer), clients);
     }
   });
 };

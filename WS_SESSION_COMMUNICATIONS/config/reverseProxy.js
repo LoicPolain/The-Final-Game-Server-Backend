@@ -29,7 +29,8 @@ function reverseProxy(portLst) {
   // Handle WebSocket upgrade requests
   server.on("upgrade", (req, socket, head) => {
     const url = req.url;
-    if (url != "/") {
+    console.log(`url: ${url}`);
+    if (url != "//") {
       const target = pathsToServers.get(url).location;
       if (!target) {
         socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
@@ -41,7 +42,7 @@ function reverseProxy(portLst) {
         console.error("WebSocket proxy error:", err);
       });
     }
-    if (url == "/") {
+    if (url == "//") {
       const target = getAvailablePath();
       if (!target) {
         socket.write("HTTP/1.1 404 Not Found\r\n\r\n");

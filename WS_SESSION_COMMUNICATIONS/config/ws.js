@@ -5,9 +5,9 @@ import { applyStatusChangeToPathsToServersMap, getPathsToServersMap } from "./pa
 const createWebSockets = function (portLst) {
   portLst.forEach((port) => {
     const ws = new WebSocketServer({ port: port });
-    // console.log(`Created game session on port: ${port}`);
+    //console.log(`Created game session on port: ${port}`);
     // Define the Docker command you want to execute
-    const dockerCommand = "docker container ls -a";
+    const dockerCommand = `docker run -d -p ${port}:7777/udp server`;
 
     // Store connected clients
     const clients = new Set();
@@ -34,6 +34,7 @@ const createWebSockets = function (portLst) {
         case 2:{
             console.log(`Session ${port} is full!`);
             applyStatusChangeToPathsToServersMap(port, "CLOSED");
+            
             break;
         }
         default:

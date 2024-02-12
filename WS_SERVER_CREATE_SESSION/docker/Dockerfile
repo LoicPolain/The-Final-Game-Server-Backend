@@ -5,13 +5,24 @@ FROM ubuntu:latest
 WORKDIR /app
 
 # Copy the local script into the container at /app
-COPY ./LinuxArm64Server /app/
+COPY ./LinuxServer /app/
 
 # Expose port 7777/UDP
 EXPOSE 7777/udp
 
+
+# Add a user 'appuser' with UID 1000 and GID 1000
+RUN groupadd -g 1000 appgroup && \
+    useradd -u 1000 -g appgroup -d /app appuser
+
+# Change the ownership of the files to the newly created user
+RUN chown -R appuser:appgroup /app
+
 # Make the script executable
-#RUN chmod +x FinalGameServer.sh
+RUN chmod +x FinalGameServer.sh
+
+# Switch to the newly created user
+USER appuser
 
 # Run the script
-CMD ["./FinalGameServer-Arm64.sh"]
+CMD ["./FinalGameServer.sh"]

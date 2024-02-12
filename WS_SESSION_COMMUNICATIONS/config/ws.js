@@ -34,7 +34,7 @@ const createWebSockets = function (portLst) {
         case 2:{
             console.log(`Session ${port} is full!`);
             applyStatusChangeToPathsToServersMap(port, "CLOSED");
-            
+            executeDockerCmd();
             break;
         }
         default:
@@ -52,7 +52,7 @@ const createWebSockets = function (portLst) {
       ws.on("message", function incoming(message) {
         console.log("received: %s", message);
         if (message == "Start game") {
-          executeDockerCmd();
+          
         }
       });
 

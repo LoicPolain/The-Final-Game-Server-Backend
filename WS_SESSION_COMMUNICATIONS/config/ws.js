@@ -40,25 +40,28 @@ const createWebSockets = async function (portLst) {
       switch (dedicatedServer.playersCount) {
         case 1: {
           applyStatusChangeToPathsToServersMap(port, "AWAITING");
+          dedicatedServer.status = "Awaiting players";
           break;
         }
         case 2: {
           console.log(`Session ${port} is full!`);
           applyStatusChangeToPathsToServersMap(port, "CLOSED");
 
-
+          dedicatedServer.status = "Full";
           executeUbuntuCmd(dockerCommandStopSession)
-          .then(() => {
-            executeUbuntuCmd(dockerCommandDeleteSession);
-          })
-          .then(() => {
-            executeUbuntuCmd(dockerCommandCreateSession);
-          })
-          .catch((error) => {
-            console.error("Error occurred:", error);
-          });
+            .then(() => {
+              executeUbuntuCmd(dockerCommandDeleteSession)
+                .then(() => {
+                  executeUbuntuCmd(dockerCommandCreateSession);
+                })
+                .catch((error) => {
+                  console.error("Error occurred:", error);
+                });
+            })
+            .catch((error) => {
+              console.error("Error occurred:", error);
+            });
 
-          
           break;
         }
         default:
@@ -87,11 +90,14 @@ const createWebSockets = async function (portLst) {
           case 0: {
             executeUbuntuCmd(dockerCommandStopSession)
               .then(() => {
-                executeUbuntuCmd(dockerCommandDeleteSession);
-              })
-              .then(() => {
-                console.log("Done");
-                applyStatusChangeToPathsToServersMap(port, "OPEN");
+                executeUbuntuCmd(dockerCommandDeleteSession)
+                  .then(() => {
+                    console.log("Done");
+                    applyStatusChangeToPathsToServersMap(port, "OPEN");
+                  })
+                  .catch((error) => {
+                    console.error("Error occurred:", error);
+                  });
               })
               .catch((error) => {
                 console.error("Error occurred:", error);

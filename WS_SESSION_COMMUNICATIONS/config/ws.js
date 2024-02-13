@@ -107,12 +107,12 @@ const createWebSockets = async function (portLst) {
 
         // Handle stdout data
         childProcess.stdout.on("data", (data) => {
-          console.log(`stdout: ${data}`);
+          console.log(`Container ${port} stdout: ${data}`);
         });
 
         // Handle stderr data
         childProcess.stderr.on("data", (data) => {
-          console.error(`stderr: ${data}`);
+          console.error(`Container ${port} error: ${data}`);
         });
 
         // Handle process exit

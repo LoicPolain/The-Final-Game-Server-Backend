@@ -27,7 +27,6 @@ const createWebSockets = async function (portLst) {
     let dedicatedServer = {
       port: port,
       status: "Awaiting players",
-      playersStatus: "Awaiting players",
       playersCount: 0,
     };
 
@@ -46,7 +45,20 @@ const createWebSockets = async function (portLst) {
         case 2: {
           console.log(`Session ${port} is full!`);
           applyStatusChangeToPathsToServersMap(port, "CLOSED");
-          executeUbuntuCmd(dockerCommandCreateSession);
+
+
+          executeUbuntuCmd(dockerCommandStopSession)
+          .then(() => {
+            executeUbuntuCmd(dockerCommandDeleteSession);
+          })
+          .then(() => {
+            executeUbuntuCmd(dockerCommandCreateSession);
+          })
+          .catch((error) => {
+            console.error("Error occurred:", error);
+          });
+
+          
           break;
         }
         default:

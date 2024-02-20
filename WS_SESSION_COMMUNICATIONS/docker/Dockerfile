@@ -25,4 +25,4 @@ RUN chmod +x FinalGameServer.sh
 USER appuser
 
 # Run the script
-CMD ["./FinalGameServer.sh"]
+CMD ["./FinalGameServer.sh", "-server", "-log", "-epicapp=Dedicated_Server_Artifact"]

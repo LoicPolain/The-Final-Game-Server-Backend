@@ -6,9 +6,9 @@ import {
 } from "./path.js";
 
 const createWebSockets = async function (portLst) {
+  console.log(`Created game WebSocket hub on port: ${portLst}`);
   portLst.forEach((port) => {
     const ws = new WebSocketServer({ port: port });
-    //console.log(`Created game session on port: ${port}`);
 
     // Define the Docker commands:
     const dockerCommandCreateSession = `docker run -d -p ${port}:7777/udp --name session${

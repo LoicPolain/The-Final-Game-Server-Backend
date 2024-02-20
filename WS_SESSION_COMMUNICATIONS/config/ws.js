@@ -28,6 +28,7 @@ const createWebSockets = async function (portLst) {
       port: port,
       status: "Awaiting players",
       playersCount: 0,
+      sessionRunning: false
     };
 
     ws.on("connection", (ws) => {
@@ -53,6 +54,7 @@ const createWebSockets = async function (portLst) {
               executeUbuntuCmd(dockerCommandDeleteSession)
                 .then(() => {
                   executeUbuntuCmd(dockerCommandCreateSession);
+                  dedicatedServer.sessionRunning = true;
                 })
                 .catch((error) => {
                   console.error("Error occurred:", error);
@@ -92,7 +94,7 @@ const createWebSockets = async function (portLst) {
               .then(() => {
                 executeUbuntuCmd(dockerCommandDeleteSession)
                   .then(() => {
-                    console.log("Done");
+                    dedicatedServer.sessionRunning = false;
                     applyStatusChangeToPathsToServersMap(port, "OPEN");
                   })
                   .catch((error) => {

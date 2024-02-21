@@ -53,8 +53,15 @@ const createWebSockets = async function (portLst) {
             .then(() => {
               executeUbuntuCmd(dockerCommandDeleteSession)
                 .then(() => {
-                  executeUbuntuCmd(dockerCommandCreateSession);
-                  dedicatedServer.sessionRunning = true;
+                  executeUbuntuCmd(dockerCommandCreateSession)
+                  .then(() => {                  
+                    dedicatedServer.sessionRunning = true;
+                    console.log(`Session ${port - 7000} is running`);
+                    broadcast(JSON.stringify(dedicatedServer), clients);
+                  })
+                  .catch((error) => {
+                    console.error("Error occurred:", error);
+                  });                  
                 })
                 .catch((error) => {
                   console.error("Error occurred:", error);

@@ -34,7 +34,7 @@ jobs:
           key: ${{ secrets.AWS_KEY }}        
           # execute pre-commands before scp
           first_ssh: |
-            cd /home/ubuntu/production
+            cd /home/ubuntu/production/The-Final-Game-Server-Backend
             git pull
           # # scp from local to remote
           # scp: # optional

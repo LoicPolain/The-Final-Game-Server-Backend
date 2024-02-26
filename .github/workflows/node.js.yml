@@ -17,26 +17,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.1.1
 
-  build_Node:
-
-    runs-on: ubuntu-22.04
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4.0.2
-      with:
-        # Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.
-        cache-dependency-path: 'WS_SESSION_COMMUNICATIONS/package-lock.json'
-        # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
-        node-version: ${{ matrix.node-version }}
-        # Used to specify a package manager for caching in the default directory. Supported values: npm, yarn, pnpm.
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
-          
+  deploy:
+      - name: ssh-scp-ssh-pipelines
+        # You may pin to the exact commit or the version.
+        # uses: cross-the-world/ssh-scp-ssh-pipelines@78e864b4890087a58248ff39320406971ca88b89
+        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+        with:
+          # ssh remote host
+          host: ${{ secrets.AWS_HOST }} 
+          # ssh remote port
+          port: ${{ secrets.AWS_PORT }}
+          # ssh remote user
+          user: ${{ secrets.AWS_USER }}
+          # content of ssh private key. ex raw content of ~/.ssh/id_rsa
+          key: ${{ secrets.AWS_KEY }}        
+          # execute pre-commands before scp
+          first_ssh: |
+            cd /home/ubuntu/production
+            git pull
+          # # scp from local to remote
+          # scp: # optional
+          # # execute post-commands after scp
+          # last_ssh: # optional
+                

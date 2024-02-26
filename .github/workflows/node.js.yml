@@ -31,7 +31,7 @@ jobs:
       uses: actions/setup-node@v4.0.2
       with:
         # Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.
-        cache-dependency-path: 'The-Final-Game-Server-Backend/WS_SESSION_COMMUNICATIONS/package.json'
+        cache-dependency-path: 'WS_SESSION_COMMUNICATIONS/package-lock.json'
         # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
         node-version: ${{ matrix.node-version }}
         # Used to specify a package manager for caching in the default directory. Supported values: npm, yarn, pnpm.

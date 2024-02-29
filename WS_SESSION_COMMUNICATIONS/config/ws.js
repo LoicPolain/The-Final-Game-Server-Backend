@@ -53,7 +53,7 @@ const createWebSockets = async function (portLst) {
             .then(() => {
               executeUbuntuCmd(dockerCommandDeleteSession)
                 .then(() => {
-                  executeUbuntuCmd(dockerCommandCreateSession)
+                  executeUbuntuCmd(dockerCommandCreateSession)                  
                   .then(() => {                  
                     dedicatedServer.sessionRunning = true;
                     console.log(`Session ${port - 7000} is running`);
@@ -97,6 +97,7 @@ const createWebSockets = async function (portLst) {
 
         switch (dedicatedServer.playersCount) {
           case 0: {
+            dedicatedServer.playersCount = 0
             executeUbuntuCmd(dockerCommandStopSession)
               .then(() => {
                 executeUbuntuCmd(dockerCommandDeleteSession)
@@ -114,7 +115,7 @@ const createWebSockets = async function (portLst) {
             break;
           }
           case 1: {
-            applyStatusChangeToPathsToServersMap(port, "AWAITING");
+            //applyStatusChangeToPathsToServersMap(port, "AWAITING");
             break;
           }
           default:

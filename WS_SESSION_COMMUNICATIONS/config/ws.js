@@ -5,6 +5,11 @@ import {
   getPathsToServersMap,
 } from "./path.js";
 
+const STOP = "STOP"
+const CREATE = "CREATE"
+const REMOVE = "REMOVE"
+
+
 const createWebSockets = async function (portLst) {
   console.log(`Created game WebSocket hub on port: ${portLst}`);
   portLst.forEach((port) => {
@@ -49,11 +54,11 @@ const createWebSockets = async function (portLst) {
           applyStatusChangeToPathsToServersMap(port, "CLOSED");
 
           dedicatedServer.status = "Full";
-          executeUbuntuCmd(dockerCommandStopSession)
+          executeUbuntuCmd(dockerCommandStopSession, STOP)
             .then(() => {
-              executeUbuntuCmd(dockerCommandDeleteSession)
+              executeUbuntuCmd(dockerCommandDeleteSession, REMOVE)
                 .then(() => {
-                  executeUbuntuCmd(dockerCommandCreateSession)                  
+                  executeUbuntuCmd(dockerCommandCreateSession, CREATE)                  
                   .then(() => {                  
                     dedicatedServer.sessionRunning = true;
                     console.log(`Session ${port - 7000} is running`);
@@ -98,9 +103,9 @@ const createWebSockets = async function (portLst) {
         switch (dedicatedServer.playersCount) {
           case 0: {
             dedicatedServer.playersCount = 0
-            executeUbuntuCmd(dockerCommandStopSession)
+            executeUbuntuCmd(dockerCommandStopSession, STOP)
               .then(() => {
-                executeUbuntuCmd(dockerCommandDeleteSession)
+                executeUbuntuCmd(dockerCommandDeleteSession, REMOVE)
                   .then(() => {
                     dedicatedServer.sessionRunning = false;
                     applyStatusChangeToPathsToServersMap(port, "OPEN");
@@ -128,24 +133,24 @@ const createWebSockets = async function (portLst) {
       });
     });
 
-    function executeUbuntuCmd(ubuntu_cmd) {
+    function executeUbuntuCmd(ubuntu_cmd, type) {
       return new Promise((resolve, reject) => {
         // Execute the Docker command
         const childProcess = exec(ubuntu_cmd);
 
         // Handle stdout data
         childProcess.stdout.on("data", (data) => {
-          console.log(`Container ${port} stdout: ${data}`);
+          console.log(`${type}: Container ${port} stdout: ${data}`);
         });
 
         // Handle stderr data
         childProcess.stderr.on("data", (data) => {
-          console.error(`Container ${port} error: ${data}`);
+          console.error(`${type}: Container ${port} error: ${data}`);
         });
 
         // Handle process exit
         childProcess.on("close", (code) => {
-          console.log(`child process exited with code ${code}`);
+          console.log(`${type}: child process exited with code ${code}`);
           resolve();
         });
 

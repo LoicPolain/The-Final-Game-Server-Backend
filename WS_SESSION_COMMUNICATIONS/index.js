@@ -4,7 +4,7 @@ import { reverseProxy } from "./config/reverseProxy.js";
 
 // Network config
 const minPort = 7777;
-const maxPort = 7780;
+const maxPort = 7999;
 const host = "localhost";
 
 unusedPortsResult(minPort, maxPort, host)
